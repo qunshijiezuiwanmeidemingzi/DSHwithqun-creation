@@ -9,6 +9,14 @@ $root  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ff    = Join-Path $root 'tools\ffmpeg.exe'
 $CARD  = 'F:\'
 
+if (-not (Test-Path -LiteralPath $ff)) {
+    Write-Host ''
+    Write-Host '  缺少 tools\ffmpeg.exe —— 检测和转码都要靠它。' -ForegroundColor Red
+    Write-Host '  请把 ffmpeg.exe 放到本脚本同级的 tools 文件夹里，下载地址见 README。' -ForegroundColor Yellow
+    Write-Host ''
+    exit 1
+}
+
 $script:okCount   = 0
 $script:convCount = 0
 $script:copyCount = 0
