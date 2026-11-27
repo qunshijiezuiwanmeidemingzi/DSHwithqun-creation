@@ -25,11 +25,9 @@
 ## 安装
 
 1. 下载本仓库：右上角 `Code` → `Download ZIP`
-2. 下载 ffmpeg 的 Windows 构建：见 [ffmpeg.org 下载页](https://ffmpeg.org/download.html)，或直接用 [gyan.dev 的 release-essentials](https://www.gyan.dev/ffmpeg/builds/)
-3. 解压后找到 `ffmpeg.exe`，放进本仓库的 `tools\` 文件夹
-4. 双击任意 `.bat`，或者把歌拖上去
+2. 解压，双击任意 `.bat`，或者把歌拖上去
 
-`tools\ffmpeg.exe` 是唯一的外部依赖，缺了它脚本会直接提示你。
+ffmpeg 已经内置在 `tools\` 里，不需要另外下载。
 
 ## 它做了什么
 
@@ -58,9 +56,15 @@ mp3fix.ps1              干活的主脚本
 检查能不能播.bat         入口：只检查不转换
 转换并拷进TF卡.bat       入口：转码并写入 F: 卡
 说明.txt                随包说明书
-tools\ffmpeg.exe        转换引擎（需自行放置，见「安装」）
+tools\                  内置 ffmpeg 及依赖 DLL
 ```
 
 ## 关于
 
 用 DeepSeek Harness 辅助开发。最初那次的排查过程记录在 [issue #1](https://github.com/qunshijiezuiwanmeidemingzi/DSHwithqun-creation/issues/1)。
+
+### 关于 `tools\` 里的 ffmpeg
+
+精简编译版，只保留了转码需要的组件（libmp3lame 编码、AAC/FLAC 解码、MP3 封装等）。`ffmpeg.exe` 约 13 MB，加上依赖的 9 个 DLL 合计约 22 MB。注意这些 DLL 是必需的，单独拿走 `ffmpeg.exe` 会起不来。
+
+由 [RenamePro](https://github.com/Ha2eS1onn/RenamePro) 项目自行编译。该构建启用了 GPL 组件（如 libx264），按 GPLv3 分发，许可证见 [GPLv3 全文](https://www.gnu.org/licenses/gpl-3.0.txt)，源码与构建方式见 RenamePro 仓库。
