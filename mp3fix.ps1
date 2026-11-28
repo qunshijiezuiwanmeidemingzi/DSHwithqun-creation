@@ -157,14 +157,61 @@ function Convert-One([string]$File, [int]$idx, [int]$total) {
     }
 }
 
-# ---------------- main ----------------
-if (-not $Paths -or $Paths.Count -eq 0) {
-    Head '使用方法'
-    Line '  把歌曲文件（或整个文件夹）拖到这个 .bat 文件上。'
+function Read-Targets {
+    Head '把文件拖进来'
+    Line '  把歌曲文件或整个文件夹拖到本窗口里，按回车。' 'White'
+    Line '  也可以手动输入路径；路径带空格时用英文引号包起来。' 'Gray'
     Line ''
-    Line '  · 好歌一键转MP3.bat   -> 在原文件夹里生成「已转MP3」子文件夹'
-    Line '  · 检查能不能播.bat    -> 只检查，不转换'
-    Line '  · 转换并拷进TF卡.bat  -> 转好后直接放进 F: 卡根目录'
+    $raw = Read-Host '  路径（直接回车就退出）'
+    if ($null -eq $raw) { return @() }
+    if ([string]::IsNullOrWhiteSpace($raw)) { return @() }
+
+    # 拖进来的多个路径都是 "带引号" 的形式，先按引号拆；没有引号就当整体一个路径
+    $quoted = @([regex]::Matches($raw, '"([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+    if ($quoted.Count -gt 0) { return $quoted }
+    return @($raw.Trim().Trim('"'))
+}
+
+function Select-Mode {
+    Head '要做什么'
+    Line '  1  转成 MP3（在源文件旁边生成「已转MP3」文件夹）' 'White'
+    Line '  2  只检查，不转换' 'White'
+    Line '  3  转好直接拷进 F: 卡根目录' 'White'
+    Line '  0  退出' 'White'
+    Line ''
+    while ($true) {
+        $c = Read-Host '  输入序号后回车'
+        if ($null -eq $c) { return $null }
+        if ([string]::IsNullOrWhiteSpace($c)) { Line '  只能输 1、2、3 或 0。' 'Yellow'; continue }
+        switch ($c.Trim()) {
+            '1' { return 'convert' }
+            '2' { return 'check' }
+            '3' { return 'card' }
+            '0' { return $null }
+        }
+        Line '  只能输 1、2、3 或 0。' 'Yellow'
+    }
+}
+
+# ---------------- main ----------------
+if ($Mode -eq 'menu') {
+    # 双击启动时没有参数，先请用户把文件拖进窗口
+    if (-not $Paths -or $Paths.Count -eq 0) { $Paths = @(Read-Targets) }
+    if (-not $Paths -or $Paths.Count -eq 0) { exit }
+
+    Head '本次要处理的内容'
+    foreach ($p in $Paths) { Line ('  · ' + $p) 'Gray' }
+
+    $pick = Select-Mode
+    if (-not $pick) { Line '已退出，什么都没做。' 'Gray'; exit }
+    $Mode = $pick
+} elseif (-not $Paths -or $Paths.Count -eq 0) {
+    Head '用法'
+    Line '  双击「音乐转码.bat」，或者把歌拖到它上面。'
+    Line ''
+    Line '  直接在命令行里用也行：'
+    Line '    powershell -File mp3fix.ps1 -Mode check "D:\歌\a.mp3"'
+    Line '    -Mode 可选 convert（默认）/ check / card'
     Line ''
     exit
 }
